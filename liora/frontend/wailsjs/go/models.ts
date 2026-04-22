@@ -1,3 +1,26 @@
+export namespace db {
+	
+	export class LocalMessage {
+	    id: number;
+	    sender: string;
+	    payload: string;
+	    timestamp: number;
+	
+	    static createFrom(source: any = {}) {
+	        return new LocalMessage(source);
+	    }
+	
+	    constructor(source: any = {}) {
+	        if ('string' === typeof source) source = JSON.parse(source);
+	        this.id = source["id"];
+	        this.sender = source["sender"];
+	        this.payload = source["payload"];
+	        this.timestamp = source["timestamp"];
+	    }
+	}
+
+}
+
 export namespace main {
 	
 	export class Message {

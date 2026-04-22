@@ -10,12 +10,20 @@ export function GetChatHistory(arg1) {
   return window['go']['main']['App']['GetChatHistory'](arg1);
 }
 
+export function GetLocalHistory(arg1) {
+  return window['go']['main']['App']['GetLocalHistory'](arg1);
+}
+
 export function GetMessages() {
   return window['go']['main']['App']['GetMessages']();
 }
 
 export function GetMyID() {
   return window['go']['main']['App']['GetMyID']();
+}
+
+export function GetMyInfo() {
+  return window['go']['main']['App']['GetMyInfo']();
 }
 
 export function GetProfile() {
