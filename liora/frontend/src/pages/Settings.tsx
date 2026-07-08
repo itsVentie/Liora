@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { 
-  User,
+  User, 
   Shield, 
   HardDrive, 
   Globe, 
@@ -20,7 +20,8 @@ import {
   Trash2,
   Download,
   EyeOff,
-  RefreshCw
+  RefreshCw,
+  Languages 
 } from 'lucide-react';
 import '../styles/Settings.scss';
 
@@ -28,7 +29,7 @@ interface SettingsProps {
   onBack: () => void;
 }
 
-type SettingsTab = 'profile' | 'general' | 'security' | 'network' | 'connections' | 'vault';
+type SettingsTab = 'profile' | 'general' | 'languages' | 'security' | 'network' | 'connections' | 'vault';
 
 export default function Settings({ onBack }: SettingsProps) {
   const [activeTab, setActiveTab] = useState<SettingsTab>('profile');
@@ -171,18 +172,6 @@ export default function Settings({ onBack }: SettingsProps) {
 
             <div className="settings-group">
               <div className="group-title">Appearance</div>
-              
-              <div className="setting-item">
-                <div className="info">
-                  <span className="label">Interface Language</span>
-                  <p>System-wide display language</p>
-                </div>
-                <select className="dark-select" value={language} onChange={(e) => setLanguage(e.target.value)}>
-                  <option value="en">English (US)</option>
-                  <option value="ru">Русский (RU)</option>
-                  <option value="fr">Français (FR)</option>
-                </select>
-              </div>
 
               <div className="setting-item">
                 <div className="info">
@@ -379,9 +368,9 @@ export default function Settings({ onBack }: SettingsProps) {
                   <p>Route traffic through servers if direct connection is blocked</p>
                 </div>
                 <select className="dark-select" value={relayServer} onChange={(e) => setRelayServer(e.target.value)}>
-                  <option value="eu">Europe (Low Latency)</option>
-                  <option value="us">United States (Standard)</option>
-                  <option value="asia">Asia (High Latency)</option>
+                  <option value="eu">Europe</option>
+                  <option value="us">United States</option>
+                  <option value="asia">Asia</option>
                 </select>
               </div>
             </div>
@@ -504,6 +493,40 @@ export default function Settings({ onBack }: SettingsProps) {
             </div>
           </section>
         );
+        case 'languages':
+        return (
+          <section className="settings-section animate-in">
+            <div className="section-title">
+              <Languages size={18} />
+              <h2>Language Settings</h2>
+            </div>
+
+            <div className="settings-group">
+              <div className="group-title">Interface Language</div>
+              
+              <div className="variant-grid">
+  {[
+    { code: 'en', name: 'English', desc: 'United States', flag: '🇺🇸' },
+    { code: 'ru', name: 'Русский', desc: 'Россия', flag: '🇷🇺' },
+    { code: 'es', name: 'Español', desc: 'España', flag: '🇪🇸' },
+    { code: 'de', name: 'Deutsch', desc: 'Deutschland', flag: '🇩🇪' },
+    { code: 'fr', name: 'Français', desc: 'France', flag: '🇫🇷' },
+    { code: 'zh', name: '中文', desc: '中国', flag: '🇨🇳' }
+  ].map((lang) => (
+    <div 
+      key={lang.code}
+      className={`variant-card ${language === lang.code ? 'active' : ''}`}
+      onClick={() => setLanguage(lang.code)}
+    >
+      <span className="card-flag">{lang.flag}</span>
+      <span className="card-title">{lang.name}</span>
+      <span className="card-desc">{lang.desc}</span>
+    </div>
+  ))}
+</div>
+            </div>
+          </section>
+        );
     }
   };
 
@@ -524,6 +547,9 @@ export default function Settings({ onBack }: SettingsProps) {
             </button>
             <button className={activeTab === 'general' ? 'active' : ''} onClick={() => setActiveTab('general')}>
               <SettingsIcon size={18} /> General
+            </button>
+            <button className={activeTab === 'languages' ? 'active' : ''} onClick={() => setActiveTab('languages')}>
+              <Languages size={18} /> Languages
             </button>
             <button className={activeTab === 'security' ? 'active' : ''} onClick={() => setActiveTab('security')}>
               <Lock size={18} /> Security & Privacy
