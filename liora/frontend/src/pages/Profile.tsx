@@ -21,20 +21,40 @@ export default function Profile({ myID, onBack }: ProfileProps) {
   
   const [isLoading, setIsLoading] = useState(!cachedProfile);
   const [isSaving, setIsSaving] = useState(false);
-  const [hasChanges, setHasChanges] = useState(false);
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [isUsernameTaken, setIsUsernameTaken] = useState(false);
+
+  const [baseline, setBaseline] = useState({
+    username: cachedProfile?.username || '',
+    bio: cachedProfile?.bio || '',
+    avatar: cachedProfile?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${myID}`
+  });
   
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const initialLoadedRef = useRef(false);
+
+  const isUsernameValid = (val: string): boolean => {
+    if (val.length < 3 || val.length > 20) return false;
+    if (!/^[a-zA-Z0-9._-]+$/.test(val)) return false;
+    if (/^[.-]/.test(val)) return false;
+    if (/[^a-zA-Z0-9][.-]/.test(val)) return false;
+    return true;
+  };
+
+  const hasChanges = username !== baseline.username || bio !== baseline.bio || avatar !== baseline.avatar;
+  const canSave = hasChanges && !isSaving && !isCheckingUsername && !isUsernameTaken && isUsernameValid(username);
 
   useEffect(() => {
     const currentCached = getProfileForUser(myID);
-    setUsername(currentCached?.username || '');
-    setBio(currentCached?.bio || '');
-    setAvatar(currentCached?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${myID}`);
+    const initUsername = currentCached?.username || '';
+    const initBio = currentCached?.bio || '';
+    const initAvatar = currentCached?.avatar_url || `https://api.dicebear.com/7.x/bottts/svg?seed=${myID}`;
+
+    setUsername(initUsername);
+    setBio(initBio);
+    setAvatar(initAvatar);
     setAvatarTs(Date.now());
     setIsLoading(!currentCached);
-    setHasChanges(false);
-    initialLoadedRef.current = false;
+    setBaseline({ username: initUsername, bio: initBio, avatar: initAvatar });
   }, [myID]);
 
   useEffect(() => {
@@ -52,13 +72,15 @@ export default function Profile({ myID, onBack }: ProfileProps) {
 
           setProfileForUser(myID, freshData);
 
-          if (!initialLoadedRef.current) {
-            setUsername(freshData.username);
-            setBio(freshData.bio);
-            setAvatar(freshData.avatar_url);
-            setAvatarTs(Date.now());
-            initialLoadedRef.current = true;
-          }
+          setUsername(freshData.username);
+          setBio(freshData.bio);
+          setAvatar(freshData.avatar_url);
+          setAvatarTs(Date.now());
+          setBaseline({
+            username: freshData.username,
+            bio: freshData.bio,
+            avatar: freshData.avatar_url
+          });
         }
       } catch (err) {
         console.error("Failed to load profile from Go layer:", err);
@@ -75,6 +97,52 @@ export default function Profile({ myID, onBack }: ProfileProps) {
       isMounted = false;
     };
   }, [myID]); 
+
+  useEffect(() => {
+    if (username === baseline.username || !isUsernameValid(username)) {
+      setIsUsernameTaken(false);
+      return;
+    }
+
+    let isCurrent = true;
+
+    const checkUsernameAvailability = async () => {
+      setIsCheckingUsername(true);
+      try {
+        const [userCheck, channelCheck] = await Promise.all([
+          supabase
+            .from('profiles')
+            .select('username')
+            .eq('username', username)
+            .maybeSingle(),
+          supabase
+            .from('channels')
+            .select('handle')
+            .eq('handle', username)
+            .maybeSingle()
+        ]);
+
+        if (isCurrent) {
+          setIsUsernameTaken(!!userCheck.data || !!channelCheck.data);
+        }
+      } catch (err) {
+        console.error("Namespace check failed:", err);
+      } finally {
+        if (isCurrent) {
+          setIsCheckingUsername(false);
+        }
+      }
+    };
+
+    const delayHandler = setTimeout(() => {
+      checkUsernameAvailability();
+    }, 400);
+
+    return () => {
+      isCurrent = false;
+      clearTimeout(delayHandler);
+    };
+  }, [username, baseline.username]);
 
   const processAndCompressImage = (file: File, targetSize = 200, quality = 0.8): Promise<File> => {
     return new Promise((resolve, reject) => {
@@ -143,7 +211,7 @@ export default function Profile({ myID, onBack }: ProfileProps) {
       const fileName = `${myID}-${Date.now()}.jpg`;
       const filePath = `${fileName}`;
 
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from('avatars')
         .upload(filePath, file, {
           cacheControl: '3600',
@@ -165,7 +233,7 @@ export default function Profile({ myID, onBack }: ProfileProps) {
   };
 
   const handleSave = async () => {
-    if (!hasChanges) return;
+    if (!canSave) return;
     setIsSaving(true);
     
     try {
@@ -177,9 +245,8 @@ export default function Profile({ myID, onBack }: ProfileProps) {
         avatar_url: avatar
       });
 
+      setBaseline({ username, bio, avatar });
       setAvatarTs(Date.now()); 
-      setHasChanges(false);
-      initialLoadedRef.current = true; 
     } catch (err) {
       console.error("Protocol Sync Failed", err);
     } finally {
@@ -198,7 +265,6 @@ export default function Profile({ myID, onBack }: ProfileProps) {
         if (publicUrl) {
           setAvatar(publicUrl);
           setAvatarTs(Date.now());
-          setHasChanges(true);
         }
       } catch (err) {
         console.error("Image processing pipeline failed:", err);
@@ -212,7 +278,6 @@ export default function Profile({ myID, onBack }: ProfileProps) {
   const resetAvatar = () => {
     setAvatar(`https://api.dicebear.com/7.x/bottts/svg?seed=${Math.random()}`);
     setAvatarTs(Date.now());
-    setHasChanges(true);
   };
 
   const getAvatarSrc = () => {
@@ -223,13 +288,12 @@ export default function Profile({ myID, onBack }: ProfileProps) {
   };
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUsername(e.target.value);
-    setHasChanges(true);
+    const cleanValue = e.target.value.replace(/[^a-zA-Z0-9._-]/g, '');
+    setUsername(cleanValue);
   };
 
   const handleBioChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setBio(e.target.value);
-    setHasChanges(true);
   };
 
   if (isLoading) return <div className="profile-loader-overlay"><div className="scanner-line"></div></div>;
@@ -267,12 +331,16 @@ export default function Profile({ myID, onBack }: ProfileProps) {
         <div className="identity-card">
           <div className="input-group-modern">
             <label>Username</label>
-            <input 
-              type="text" 
-              value={`@${username}`} 
-              onChange={handleUsernameChange}
-              spellCheck={false}
-            />
+            <div className="username-input-wrapper" style={{ display: 'flex', alignItems: 'center', position: 'relative' }}>
+              <span className="username-prefix" style={{ position: 'absolute', left: '12px', opacity: 0.5 }}>@</span>
+              <input 
+                type="text" 
+                value={username} 
+                onChange={handleUsernameChange}
+                spellCheck={false}
+                style={{ paddingLeft: '28px', width: '100%' }}
+              />
+            </div>
           </div>
 
           <div className="input-group-modern">
@@ -294,14 +362,22 @@ export default function Profile({ myID, onBack }: ProfileProps) {
 
         <footer className="action-footer">
           <button 
-            className={`protocol-btn ${hasChanges ? 'ready' : ''} ${isSaving ? 'executing' : ''}`} 
+            className={`protocol-btn ${canSave ? 'ready' : ''} ${isSaving ? 'executing' : ''}`} 
             onClick={handleSave}
-            disabled={!hasChanges || isSaving}
+            disabled={!canSave}
           >
             {isSaving ? (
               <span className="flex-center"><div className="spinner"></div> Processing...</span>
+            ) : isCheckingUsername ? (
+              <span className="flex-center"><div className="spinner"></div> Checking availability...</span>
+            ) : isUsernameTaken ? (
+              "Username already taken"
             ) : hasChanges ? (
-              <span className="flex-center"><Check size={18} /> Commit Changes</span>
+              isUsernameValid(username) ? (
+                <span className="flex-center"><Check size={18} /> Update</span>
+              ) : (
+                "Invalid Username"
+              )
             ) : (
               "Up to date"
             )}

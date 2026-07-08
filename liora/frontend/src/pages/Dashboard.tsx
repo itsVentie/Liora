@@ -10,8 +10,7 @@ import {
   Bell,
   Folder,
   Globe,
-  Music,
-  Mic
+  Music
 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 // @ts-ignore
@@ -510,14 +509,6 @@ export default function Dashboard({ myID, setActiveScreen, profile, onLogout, on
                   <Megaphone size={18} />
                   <span>Create Channel</span>
                 </button>
-                <button onClick={() => handleActionClick('create_private_channel')}>
-                  <Megaphone size={18} />
-                  <span>Create Private Channel</span>
-                </button>
-                <button onClick={() => handleActionClick('create_private_group')}>
-                  <Users size={18} />
-                  <span>Create Private Group</span>
-                </button>
               </div>
             )}
           </div>
@@ -553,10 +544,6 @@ export default function Dashboard({ myID, setActiveScreen, profile, onLogout, on
                   <div className="conv-avatar">
                     {item.avatar_url ? (
                       <img src={item.avatar_url} className="avatar-img" alt="" />
-                    ) : item.type === 'channel' ? (
-                      <div className="initials-avatar channel-avatar-placeholder">
-                        {displayName.slice(0, 2).toUpperCase()}
-                      </div>
                     ) : (
                       <div className="initials-avatar">
                         {displayName.slice(0, 2).toUpperCase()}
@@ -596,7 +583,7 @@ export default function Dashboard({ myID, setActiveScreen, profile, onLogout, on
               onBack={() => setActiveChat(null)} 
             />
           ) : activeChat.type === 'group' ? (
-            <Group  
+            <Group 
               group={activeChat}
               myID={myID}
               onBack={() => setActiveChat(null)}
@@ -612,9 +599,9 @@ export default function Dashboard({ myID, setActiveScreen, profile, onLogout, on
         ) : (
           <div className="empty-state">
             <div className="shield-icon">
-              <img src={userPhoto} alt="Liora Security" style={{ width: '120px', borderRadius: '50%' }} />
+              <img src={userPhoto} alt="Liora" style={{ width: '120px', borderRadius: '50%' }} />
             </div>
-            <h2>Liora Secure Environment</h2>
+            <h2>Liora</h2>
             <p>Private Messenger</p>
             <div className="id-badge">
               <span className="label">ID:</span>

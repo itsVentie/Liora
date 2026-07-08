@@ -1,19 +1,17 @@
-$bg-dark: #07070a;
-$accent-purple: #7d5fff;    
-$accent-blue: #3d5afe;     
-$neon-accent: #00ff88;      
-$text-main: #f5f6fa;
-$text-dim: #808e9b;
-$glass-bg: rgba(15, 15, 20, 0.95);
-$glass-border: rgba(255, 255, 255, 0.08);
+$bg-main: #0a0b0e;
+$bg-surface: #121418;
+$bg-elevated: #1a1d24;
+$accent-primary: #5c67fa;
+$accent-secondary: #4f46e5;
+$text-main: #e2e8f0;
+$text-dim: #94a3b8;
+$border-light: #222630;
+$hover-subtle: #1c1f28;
 
 .profile-page {
   position: fixed;
   inset: 0;
-  background-color: $bg-dark;
-  background-image: 
-    radial-gradient(circle at 20% 20%, rgba(125, 95, 255, 0.05) 0%, transparent 40%),
-    radial-gradient(circle at 80% 80%, rgba(0, 255, 136, 0.02) 0%, transparent 40%);
+  background-color: $bg-main;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -24,7 +22,7 @@ $glass-border: rgba(255, 255, 255, 0.08);
   .noise {
     position: absolute;
     inset: 0;
-    opacity: 0.03;
+    opacity: 0.02;
     pointer-events: none;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
   }
@@ -42,76 +40,77 @@ $glass-border: rgba(255, 255, 255, 0.08);
   z-index: 10;
 
   .back-btn-circle {
-    width: 44px;
-    height: 44px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    background: $glass-bg;
-    border: 1px solid $glass-border;
-    color: white;
+    background: $bg-surface;
+    border: 1px solid $border-light;
+    color: $text-dim;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: 0.3s;
+    transition: all 0.2s ease;
 
     &:hover {
-      background: $accent-purple;
-      border-color: $accent-purple;
-      box-shadow: 0 0 20px rgba($accent-purple, 0.4);
+      background: $hover-subtle;
+      color: $text-main;
+      border-color: $text-dim;
     }
   }
 }
 
 .profile-container {
   width: 100%;
-  max-width: 500px;
+  max-width: 460px;
   padding: 40px;
-  background: $glass-bg;
-  border: 1px solid $glass-border;
-  border-radius: 32px;
-  backdrop-filter: blur(20px);
+  background: $bg-surface;
+  border: 1px solid $border-light;
+  border-radius: 24px;
   position: relative;
-  box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.5);
   z-index: 5;
+  animation: animate-fade-in 0.3s ease-out forwards;
 }
 
 .avatar-master-section {
   display: flex;
   justify-content: center;
-  margin-bottom: 40px;
+  margin-bottom: 32px;
 
   .avatar-frame {
     position: relative;
-    width: 140px;
-    height: 140px;
-    border-radius: 40px;
-    padding: 4px;
-    background: linear-gradient(135deg, $accent-purple, $accent-blue);
-    transition: 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    width: 120px;
+    height: 120px;
+    border-radius: 32px;
+    padding: 3px;
+    background: $border-light;
+    transition: all 0.3s ease;
     
     &.syncing {
-      animation: rotate-border 2s linear infinite;
+      animation: pulse-border 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+      background: $accent-primary;
     }
 
     img {
       width: 100%;
       height: 100%;
       object-fit: cover;
-      border-radius: 36px;
-      background: $bg-dark;
+      border-radius: 29px;
+      background: $bg-elevated;
     }
 
     .avatar-overlay {
       position: absolute;
-      inset: 4px;
-      background: rgba(0, 0, 0, 0.6);
-      border-radius: 36px;
+      inset: 3px;
+      background: rgba(10, 11, 14, 0.7);
+      border-radius: 29px;
       display: flex;
       align-items: center;
       justify-content: center;
       gap: 12px;
       opacity: 0;
-      transition: 0.3s;
+      transition: opacity 0.2s ease;
     }
 
     &:hover .avatar-overlay {
@@ -119,22 +118,23 @@ $glass-border: rgba(255, 255, 255, 0.08);
     }
 
     .action-btn {
-      width: 40px;
-      height: 40px;
-      border-radius: 12px;
-      background: white;
-      border: none;
-      color: black;
+      width: 36px;
+      height: 36px;
+      border-radius: 10px;
+      background: $bg-elevated;
+      border: 1px solid $border-light;
+      color: $text-main;
       display: flex;
       align-items: center;
       justify-content: center;
       cursor: pointer;
-      transition: 0.2s;
+      transition: all 0.2s ease;
 
       &:hover:not(:disabled) {
-        transform: scale(1.1);
-        background: $accent-purple;
-        color: white;
+        transform: translateY(-2px);
+        background: $accent-primary;
+        border-color: $accent-primary;
+        color: #fff;
       }
     }
   }
@@ -143,63 +143,68 @@ $glass-border: rgba(255, 255, 255, 0.08);
 .identity-card {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 
   .input-group-modern {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
 
     label {
-      font-size: 11px;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      font-size: 12px;
       color: $text-dim;
-      font-weight: 700;
-      padding-left: 4px;
+      font-weight: 500;
+      padding-left: 2px;
     }
 
     input, textarea {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid $glass-border;
-      border-radius: 16px;
-      padding: 14px 18px;
-      color: white;
-      font-size: 15px;
-      transition: 0.3s;
+      background: $bg-main;
+      border: 1px solid $border-light;
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: $text-main;
+      font-size: 14px;
+      transition: all 0.2s ease;
       outline: none;
+      font-family: inherit;
+
+      &::placeholder {
+        color: $text-dim;
+      }
 
       &:focus {
-        background: rgba(255, 255, 255, 0.06);
-        border-color: $accent-purple;
-        box-shadow: 0 0 20px rgba($accent-purple, 0.1);
+        border-color: $accent-primary;
+        box-shadow: 0 0 0 1px $accent-primary;
       }
     }
 
     textarea {
-      height: 100px;
+      height: 80px;
       resize: none;
     }
   }
 
   .hash-info {
-    margin-top: 8px;
+    margin-top: 4px;
+    
     label {
-      font-size: 11px;
-      color: #444;
-      text-transform: uppercase;
+      font-size: 12px;
+      color: $text-dim;
+      font-weight: 500;
       display: block;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
     }
+    
     .id-strip {
-      background: rgba(0, 0, 0, 0.3);
-      padding: 12px 16px;
+      background: $bg-main;
+      padding: 12px;
       border-radius: 12px;
-      border: 1px dashed #222;
+      border: 1px dashed $border-light;
+      
       code {
         font-family: 'JetBrains Mono', monospace;
         font-size: 12px;
-        color: $accent-blue;
+        color: $text-dim;
         word-break: break-all;
       }
     }
@@ -207,36 +212,38 @@ $glass-border: rgba(255, 255, 255, 0.08);
 }
 
 .action-footer {
-  margin-top: 40px;
+  margin-top: 32px;
 
   .protocol-btn {
     width: 100%;
-    height: 54px;
-    border-radius: 16px;
+    height: 48px;
+    border-radius: 12px;
     border: none;
-    background: rgba(255, 255, 255, 0.05);
-    color: rgba(255, 255, 255, 0.3);
-    font-weight: 700;
-    font-size: 15px;
+    background: $bg-elevated;
+    color: $text-dim;
+    font-weight: 600;
+    font-size: 14px;
     cursor: not-allowed;
-    transition: 0.4s;
+    transition: all 0.2s ease;
     overflow: hidden;
 
     &.ready {
-      background: $accent-purple;
-      color: white;
+      background: $accent-primary;
+      color: #fff;
       cursor: pointer;
-      box-shadow: 0 10px 30px rgba($accent-purple, 0.3);
       
       &:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 15px 40px rgba($accent-purple, 0.5);
+        background: $accent-secondary;
+      }
+      
+      &:active {
+        transform: scale(0.98);
       }
     }
 
     &.executing {
-      background: #111;
-      color: $text-dim;
+      background: $bg-elevated;
+      color: $text-main;
       cursor: wait;
     }
 
@@ -252,38 +259,39 @@ $glass-border: rgba(255, 255, 255, 0.08);
 .profile-loader-overlay {
   position: fixed;
   inset: 0;
-  background: $bg-dark;
+  background: rgba(10, 11, 14, 0.9);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 12000;
+  backdrop-filter: blur(4px);
 
   .scanner-line {
-    width: 200px;
+    width: 150px;
     height: 2px;
-    background: $accent-purple;
-    box-shadow: 0 0 20px $accent-purple;
-    animation: scan 2s ease-in-out infinite;
+    background: $accent-primary;
+    border-radius: 2px;
+    animation: scan 1.5s ease-in-out infinite;
   }
 }
 
 .spinner {
-  width: 18px;
-  height: 18px;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  border-top-color: white;
+  width: 16px;
+  height: 16px;
+  border: 2px solid $border-light;
+  border-top-color: $accent-primary;
   border-radius: 50%;
-  animation: spin 0.8s linear infinite;
+  animation: spin 0.6s linear infinite;
 }
 
 @keyframes scan {
-  0%, 100% { transform: translateY(-100px); opacity: 0; }
-  50% { transform: translateY(100px); opacity: 1; }
+  0%, 100% { transform: translateY(-40px); opacity: 0; }
+  50% { transform: translateY(40px); opacity: 1; }
 }
 
-@keyframes rotate-border {
-  from { filter: hue-rotate(0deg); }
-  to { filter: hue-rotate(360deg); }
+@keyframes pulse-border {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
 }
 
 @keyframes spin {
@@ -291,6 +299,6 @@ $glass-border: rgba(255, 255, 255, 0.08);
 }
 
 @keyframes animate-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }

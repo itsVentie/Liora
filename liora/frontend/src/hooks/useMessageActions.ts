@@ -15,6 +15,7 @@ interface UseMessageActionsProps {
 export const useMessageActions = ({ currentUserId, onDeleteMessage, onDeleteMultipleMessages }: UseMessageActionsProps) => {
   const [contextMenu, setContextMenu] = useState<ContextMenu | null>(null);
   const [selectedMessages, setSelectedMessages] = useState<any[]>([]);
+  const [replyTo, setReplyTo] = useState<any | null>(null);
   
   const isDraggingRef = useRef(false);
   const startIdRef = useRef<string | null>(null);
@@ -100,6 +101,30 @@ export const useMessageActions = ({ currentUserId, onDeleteMessage, onDeleteMult
     setSelectedMessages([]);
   };
 
+  const startReply = (msg: any) => {
+    setReplyTo(msg);
+    closeMenu();
+  };
+
+  const cancelReply = () => {
+    setReplyTo(null);
+  };
+
+  const getForwardData = () => {
+    const data = selectedMessages.length > 0 ? selectedMessages : (contextMenu?.msg ? [contextMenu.msg] : []);
+    closeMenu();
+    return data;
+  };
+
+  const scrollToMessage = (msgId: string) => {
+    const element = document.getElementById(`msg-${msgId}`);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      element.classList.add('highlight-flash');
+      setTimeout(() => element.classList.remove('highlight-flash'), 2000);
+    }
+  };
+
   const clearSelection = () => {
     setSelectedMessages([]);
   };
@@ -125,6 +150,7 @@ export const useMessageActions = ({ currentUserId, onDeleteMessage, onDeleteMult
     contextMenu,
     selectedMessages,
     setSelectedMessages,
+    replyTo,
     startSelection,
     enterSelection,
     endSelection,
@@ -133,6 +159,10 @@ export const useMessageActions = ({ currentUserId, onDeleteMessage, onDeleteMult
     copySelectedText,
     deleteSingleMessage,
     deleteSelectedMessages,
+    startReply,
+    cancelReply,
+    getForwardData,
+    scrollToMessage,
     clearSelection,
     closeMenu
   };

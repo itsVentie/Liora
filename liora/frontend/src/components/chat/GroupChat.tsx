@@ -346,7 +346,7 @@ export const GroupChat: React.FC<GroupChatProps> = ({ group: initialGroup, myID,
                                             disabled={isSavingSettings}
                                         >
                                             <Save size={14} />
-                                            <span>{isSavingSettings ? "Saving..." : "Save parameters"}</span>
+                                            <span>{isSavingSettings ? "Saving..." : "Save"}</span>
                                         </button>
                                     </div>
                                 ) : (

@@ -427,7 +427,7 @@ export const Group: React.FC<GroupProps> = ({ group: initialGroup, myID, onBack,
                                             disabled={isSavingSettings}
                                         >
                                             <Save size={14} />
-                                            <span>{isSavingSettings ? "Saving..." : "Save parameters"}</span>
+                                            <span>{isSavingSettings ? "Saving..." : "Save"}</span>
                                         </button>
                                     </div>
                                 ) : (
