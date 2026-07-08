@@ -7,10 +7,14 @@ import {
   Compass,
   HardDrive,
   Rss,
+  Sparkles,
+  FolderSearch,
+  Sliders,
   Bell,
   Folder,
   Globe,
-  Music
+  Music,
+  Bookmark
 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 // @ts-ignore
@@ -102,10 +106,60 @@ export default function Dashboard({ myID, setActiveScreen, profile, onLogout, on
   const [myGroups, setMyGroups] = useState<any[]>([]);
   const [expandedGroup, setExpandedGroup] = useState<string | null>(null);
 
+  // --- ЛОГИКА ИЗМЕНЕНИЯ РАЗМЕРА СИДБАРА (КАК В ТЕЛЕГРАМЕ) ---
+  const [sidebarWidth, setSidebarWidth] = useState(320); 
+  const [isCompact, setIsCompact] = useState(false);    
+  const isResizing = useRef(false);
+
+  const startResizing = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    isResizing.current = true;
+    document.body.style.cursor = 'col-resize'; 
+    document.body.style.userSelect = 'none';   
+  }, []);
+
+  const stopResizing = useCallback(() => {
+    isResizing.current = false;
+    document.body.style.cursor = 'default';
+    document.body.style.userSelect = 'auto';
+  }, []);
+
+  const resize = useCallback((e: MouseEvent) => {
+    if (!isResizing.current) return;
+    
+    const mainSidebar = document.querySelector('.main-sidebar');
+    const offset = mainSidebar ? mainSidebar.getBoundingClientRect().width : 70;
+    
+    let newWidth = e.clientX - offset;
+    
+    const THRESHOLD = 160;     
+    const MIN_WIDTH = 240;     
+    const MAX_WIDTH = 450;     
+    const COMPACT_WIDTH = 72;  
+
+    if (newWidth < THRESHOLD) {
+      setSidebarWidth(COMPACT_WIDTH);
+      setIsCompact(true);
+    } else {
+      if (newWidth < MIN_WIDTH) newWidth = MIN_WIDTH;
+      if (newWidth > MAX_WIDTH) newWidth = MAX_WIDTH;
+      setSidebarWidth(newWidth);
+      setIsCompact(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    window.addEventListener('mousemove', resize);
+    window.addEventListener('mouseup', stopResizing);
+    return () => {
+      window.removeEventListener('mousemove', resize);
+      window.removeEventListener('mouseup', stopResizing);
+    };
+  }, [resize, stopResizing]);
+
   const actionMenuRef = useRef<HTMLDivElement>(null);
   const profileMenuRef = useRef<HTMLDivElement>(null);
   const sideNavRef = useRef<HTMLElement>(null);
-
   const fetchCounterRef = useRef(0);
 
   useEffect(() => {
@@ -424,6 +478,11 @@ export default function Dashboard({ myID, setActiveScreen, profile, onLogout, on
             <span className="tooltip">Messages</span>
           </button>
 
+          <button className={activeTab === 'saved' ? 'active' : ''} onClick={() => { setActiveTab('saved'); setExpandedGroup(null); }}>
+            <Bookmark size={22} />
+            <span className="tooltip">Saved Messages</span>
+          </button>
+
           <div className={`nav-group ${activeTab === 'drive' || activeTab === 'rss' ? 'active' : ''}`}>
             <button className={expandedGroup === 'storage' ? 'group-trigger-active' : ''} onClick={() => setExpandedGroup(expandedGroup === 'storage' ? null : 'storage')}>
               <HardDrive size={22} />
@@ -464,6 +523,36 @@ export default function Dashboard({ myID, setActiveScreen, profile, onLogout, on
             )}
           </div>
 
+          <div className={`nav-group ${activeTab === 'ai' || activeTab === 'ai-drive' ? 'active' : ''}`}>
+            <button 
+              className={expandedGroup === 'ai' ? 'group-trigger-active' : ''} 
+              onClick={() => setExpandedGroup(expandedGroup === 'ai' ? null : 'ai')}
+            >
+              <Sparkles size={22} /> 
+              <span className="tooltip">AI Hub</span>
+            </button>
+
+            {expandedGroup === 'ai' && (
+              <div className="submenu-dropdown-right glass-morphism animate-dropdown-right">
+                <button 
+                  className={activeTab === 'ai-drive' ? 'submenu-active' : ''} 
+                  onClick={() => { setActiveTab('ai-drive'); setExpandedGroup(null); }}
+                >
+                  <FolderSearch size={18} />
+                  <span>AI Drive</span>
+                </button>
+                
+                <button 
+                  className={activeTab === 'ai' ? 'submenu-active' : ''} 
+                  onClick={() => { setActiveTab('ai'); setExpandedGroup(null); }}
+                >
+                  <Sliders size={18} />
+                  <span>AI Settings</span>
+                </button>
+              </div>
+            )}
+          </div>
+
           <div className="nav-spacer"></div>
 
           <button onClick={() => window.open('https://discord.gg/JjcTWnr8rm', '_blank')}>
@@ -483,54 +572,57 @@ export default function Dashboard({ myID, setActiveScreen, profile, onLogout, on
         </nav>
       </aside>
 
-      <section className="chat-list-section">
+      <section className={`chat-list-section ${isCompact ? 'compact' : ''}`} style={{ width: `${sidebarWidth}px`, flex: 'none' }}>
         <header className="list-header">
           <div className="brand-box">
             <img src={userPhoto} alt="Liora Logo" style={{ width: '40px', height: '40px' }} />
-            <h1>Liora</h1>
+            {!isCompact && <h1>Liora</h1>}
           </div>
           
-          <div className="action-menu-container" ref={actionMenuRef}>
-            <button className="icon-btn" onClick={() => setIsActionMenuOpen(!isActionMenuOpen)}>
-              <Plus size={20} />
-            </button>
-            
-            {isActionMenuOpen && (
-              <div className="action-dropdown glass-morphism animate-pop">
-                <button onClick={() => handleActionClick('new_chat')}>
-                  <MessageSquarePlus size={18} />
-                  <span>Start Direct Chat</span>
-                </button>
-                <button onClick={() => handleActionClick('create_group')}>
-                  <Users size={18} />
-                  <span>Create Group</span>
-                </button>
-                <button onClick={() => handleActionClick('create_channel')}>
-                  <Megaphone size={18} />
-                  <span>Create Channel</span>
-                </button>
-              </div>
-            )}
-          </div>
+          {!isCompact && (
+            <div className="action-menu-container" ref={actionMenuRef}>
+              <button className="icon-btn" onClick={() => setIsActionMenuOpen(!isActionMenuOpen)}>
+                <Plus size={20} />
+              </button>
+              
+              {isActionMenuOpen && (
+                <div className="action-dropdown glass-morphism animate-pop">
+                  <button onClick={() => handleActionClick('new_chat')}>
+                    <MessageSquarePlus size={18} />
+                    <span>Start Direct Chat</span>
+                  </button>
+                  <button onClick={() => handleActionClick('create_group')}>
+                    <Users size={18} />
+                    <span>Create Group</span>
+                  </button>
+                  <button onClick={() => handleActionClick('create_channel')}>
+                    <Megaphone size={18} />
+                    <span>Create Channel</span>
+                  </button>
+                </div>
+              )}
+            </div>
+          )}
         </header>
 
-        <div className="message-type-switcher">
-          <button className={messageFilter === 'direct' ? 'active' : ''} onClick={() => setMessageFilter('direct')}>Dm</button>
-          <button className={messageFilter === 'groups' ? 'active' : ''} onClick={() => setMessageFilter('groups')}>Groups</button>
-          <button className={messageFilter === 'channels' ? 'active' : ''} onClick={() => setMessageFilter('channels')}>Channels</button>
-        </div>
-
+        {!isCompact && (
+          <div className="message-type-switcher">
+            <button className={messageFilter === 'direct' ? 'active' : ''} onClick={() => setMessageFilter('direct')}>Dm</button>
+            <button className={messageFilter === 'groups' ? 'active' : ''} onClick={() => setMessageFilter('groups')}>Groups</button>
+            <button className={messageFilter === 'channels' ? 'active' : ''} onClick={() => setMessageFilter('channels')}>Channels</button>
+          </div>
+        )}
         <div className="search-box" onClick={() => setIsSearchOpen(true)}>
           <div className="search-icon">
             <Search size={16} />
           </div>
-          <input type="text" placeholder="Search..." readOnly />
+          {!isCompact && <input type="text" placeholder="Search..." readOnly />}
         </div>
 
         <div className="conversations">
           {filteredList.length === 0 ? (
             <div className="empty-list-info">
-              <p>{!isLoaded ? "Loading..." : "Nothing is found"}</p>
+              <p>{!isLoaded ? "Loading..." : isCompact ? "" : "Nothing is found"}</p>
             </div>
           ) : (
             filteredList.map((item) => {
@@ -550,27 +642,33 @@ export default function Dashboard({ myID, setActiveScreen, profile, onLogout, on
                       </div>
                     )}
                   </div>
-                  
-                  <div className="conv-content">
-                    <div className="conv-title">
-                      <span className="name">{displayName}</span>
-                      {item.last_message_time && (
-                        <span className="conv-time">
-                          {new Date(item.last_message_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </span>
-                      )}
-                    </div>
-                    <p className="last-message">{item.last_message || "No messages yet"}</p>
-                  </div>
-                  
-                  {item.type === 'channel' && <div className="channel-badge">Public</div>}
-                  {item.type === 'group' && <div className="channel-badge group-badge">Group</div>}
+                
+                  {!isCompact && (
+                    <>
+                      <div className="conv-content">
+                        <div className="conv-title">
+                          <span className="name">{displayName}</span>
+                          {item.last_message_time && (
+                            <span className="conv-time">
+                              {new Date(item.last_message_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </span>
+                          )}
+                        </div>
+                        <p className="last-message">{item.last_message || "No messages yet"}</p>
+                      </div>
+                      
+                      {item.type === 'channel' && <div className="channel-badge">Public</div>}
+                      {item.type === 'group' && <div className="channel-badge group-badge">Group</div>}
+                    </>
+                  )}
                 </div>
               );
             })
           )}
         </div>
       </section>
+
+      <div className="resize-handle" onMouseDown={startResizing} />
 
       <main className="chat-view">
         <div className="noise"></div>
